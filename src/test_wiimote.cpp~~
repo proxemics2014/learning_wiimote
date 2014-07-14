@@ -1,0 +1,59 @@
+#include "ros/ros.h"
+#include "std_msgs/String.h"
+#include "sensor_msgs/Joy.h"
+#include "geometry_msgs/Twist.h"
+
+ros::NodeHandle *n2 = NULL;
+ros::Publisher joy_pub;
+
+//  '{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}'
+
+void publish(int u,int d){     // using up/down/left/right arrow keys      
+     ros::Rate loop_rate(10); //1000
+     geometry_msgs::Twist msg2;
+     
+     if(u==1)
+{     	
+        msg2.linear.x = 0.8*u;
+ 	ROS_INFO("You are going UP: %f", msg2.linear.x);
+}	
+     
+     if(d==1)
+ {    	msg2.linear.x = -d;
+ 	ROS_INFO("You are going DOWN");
+}
+
+}
+     while(ros::ok){
+     	joy_pub.publish(msg2);
+        ros::spinOnce();
+        loop_rate.sleep();
+     }
+}
+
+
+void chatter(const sensor_msgs::Joy::ConstPtr& msg){
+   //ROS_INFO("You are going %s: [%f]",  msg->buttons[0] > 0 ? "LEFT" : "RIGHT", msg->buttons[0]);
+   //ROS_INFO("You are going %s: [%f]",  msg->buttons[1] > 0  ? "UP" : "DOWN", msg->buttons[1]);
+   
+  
+   publish(msg->buttons[9], msg->buttons[8]);
+
+}
+
+
+
+// ---PS3 JOY---
+
+int main(int argc, char **argv)
+{
+ros::init(argc,argv,"joysub");
+ros::NodeHandle n; // Inititalization of the node
+n2 = new ros::NodeHandle; // 2nd node being initialized
+joy_pub = n2->advertise<geometry_msgs::Twist>("RosAria/cmd_vel",1);
+ros::Subscriber sub = n.subscribe("joy",1,chatter);
+ros::spin();
+
+return 0;
+
+}
